@@ -1,7 +1,7 @@
 import sys, pickle, os, stat
-from PyQt5.QtWidgets import QMainWindow, QApplication, QSystemTrayIcon, QMessageBox, QAction, QMenu
-from PyQt5.QtCore import QTimer, QFileInfo
-from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QMainWindow, QApplication, QSystemTrayIcon, QMessageBox, QAction, QMenu, QFileDialog
+from PyQt5.QtCore import QTimer, QFileInfo, QUrl
+from PyQt5.QtGui import QIcon, QDesktopServices
 from faxCheckGui import Ui_MainWindow
 
 class checkFax(QMainWindow):
@@ -14,13 +14,14 @@ class checkFax(QMainWindow):
         self.trayIcon = QSystemTrayIcon(self.normFaxIcon, self)
         self.setWindowIcon(self.normFaxIcon)
         self.trayIcon.show()
-        self.trayIcon.activated.connect(self.trayIconActivated)
         self.minimizeAction = QAction("Mi&nimize", self, triggered=self.hide)
         self.restoreAction = QAction("&Restore", self, triggered=self.showNormal)
+        self.openFaxDirAction = QAction("&Open fax directory", self, triggered=self.openFaxDir)
         self.quitAction = QAction("&Quit", self, triggered=self.dropDead)
         self.trayIconMenu = QMenu(self)
         self.trayIconMenu.addAction(self.minimizeAction)
         self.trayIconMenu.addAction(self.restoreAction)
+        self.trayIconMenu.addAction(self.openFaxDirAction)
         self.trayIconMenu.addSeparator()
         self.trayIconMenu.addAction(self.quitAction)
         self.trayIcon.setContextMenu(self.trayIconMenu)
@@ -29,28 +30,61 @@ class checkFax(QMainWindow):
         self.loadConfigFile()
         self.ui.checkIntervalLineEdit.setText(str(int(self.configData['checkInterval'] / 1000)))
         self.ui.dirToMonitorLineEdit.setText(self.configData['dirToMonitor'])
-        self.ui.lastMTimeLineEdit.setText(str(self.configData['lastMtime']))
         self.ui.configFileLineEdit.setText(self.configData['confFile'])
+        self.ui.actionQuit.triggered.connect(self.dropDead)
 
         self.ui.updatePushButton.clicked.connect(self.update)
+        self.ui.pickDirPushButton.clicked.connect(self.pickDir)
 
+        self.checkForFaxes()
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.checkForFaxes)
         self.timer.start(self.configData['checkInterval'])
+        self.minimizeAction.setEnabled(self.isVisible())
+        self.restoreAction.setEnabled(not self.isVisible())
+
+    def pickDir(self):
+        dname = QFileDialog.getExistingDirectory(self, "Select Directory to Monitor", self.ui.dirToMonitorLineEdit.text())
+        if dname:
+            self.ui.dirToMonitorLineEdit.setText(dname)
+    
+    def hide(self):
+        super(checkFax, self).hide()
+        self.minimizeAction.setEnabled(self.isVisible())
+        self.restoreAction.setEnabled(not self.isVisible())
+
+    def showNormal(self):
+        super(checkFax, self).showNormal()
+        self.minimizeAction.setEnabled(self.isVisible())
+        self.restoreAction.setEnabled(not self.isVisible())
 
     def checkForFaxes(self):
-        print ("checkForFaxes()")
+        listOfFiles = ''
         statinfo = None
         try:
             statinfo = os.stat(self.configData['dirToMonitor'])
         except FileNotFoundError:
             self.timer.stop()
             QApplication.instance().quit()
-        if self.configData['lastMtime'] != statinfo.st_mtime:
-            self.configData['lastMtime'] = statinfo.st_mtime
-            self.update()
+            
+        for f in os.listdir(self.configData['dirToMonitor']):
+            # ignore "hidden" files that start with .
+            if f[0] != '.':
+                pathname = os.path.join(self.configData['dirToMonitor'], f)
+                if listOfFiles != '':
+                    listOfFiles += '\n'
+                listOfFiles += pathname
+            
+        # set "new fax" icon as long as there are files in the directory...
+        if len(listOfFiles) > 0:
             self.setWindowIcon(self.newFaxIcon)
             self.trayIcon.setIcon(self.newFaxIcon)
+        # else set "no new fax" icon when the directory is empty...
+        else:
+            self.setWindowIcon(self.normFaxIcon)
+            self.trayIcon.setIcon(self.normFaxIcon)
+            listOfFiles = 'faxCheck -- monitor for new faxes'
+        self.trayIcon.setToolTip(listOfFiles)
         self.ui.statusbar.showMessage('checkForFaxes(' + str(self.numTimes) + ')')
         self.numTimes += 1
 
@@ -62,28 +96,23 @@ class checkFax(QMainWindow):
         
         if newCheckInterval <= 999000 and newCheckInterval > 0:
             self.configData['checkInterval'] = newCheckInterval
-        else:
-            print ('[' + str(newCheckInterval) + '] is not valid interval')
         try:
             statinfo = os.stat(newDirToMonitor)
             if stat.S_ISDIR(statinfo.st_mode):
                 self.configData['dirToMonitor'] = newDirToMonitor
-            else:
-                print ('[' + newDirToMonitor + '] is not a directory')
         except FileNotFoundError:
             print ('[' + newDirToMonitor + '] does not exist')
+            self.dropDead()
             
         # Update config file...
         with open(self.configData['confFile'], 'wb') as f:
             pickle.dump(self.configData, f, pickle.HIGHEST_PROTOCOL)
         self.ui.checkIntervalLineEdit.setText(str(int(self.configData['checkInterval'] / 1000)))
         self.ui.dirToMonitorLineEdit.setText(self.configData['dirToMonitor'])
-        self.ui.lastMTimeLineEdit.setText(str(self.configData['lastMtime']))
 
     def loadConfigFile(self):
         self.configData = {
-            'lastMtime': float(0.0)
-            , 'dirToMonitor': 'S:\\Faxes'
+            'dirToMonitor': '//samba-jail.losh.lan/share/faxes'
             , 'checkInterval': int(5000)
             , 'confFile': os.path.expanduser('~') + os.sep + '.faxCheckrc'
         }
@@ -99,19 +128,11 @@ class checkFax(QMainWindow):
         self.hide()
         event.ignore()
 
-    def trayIconActivated(self, reason):
-        if reason == QSystemTrayIcon.DoubleClick:
-            print ("DoubleClick")
-            self.showNormal()
-        elif reason == QSystemTrayIcon.Trigger:
-            print ("Trigger")
-            self.setWindowIcon(self.normFaxIcon)
-            self.trayIcon.setIcon(self.normFaxIcon)
+    def openFaxDir(self):
+        QDesktopServices.openUrl(QUrl.fromLocalFile(self.configData['dirToMonitor']))
 
     def dropDead(self):
-        print ("dropDead()")
         self.timer.stop()
-        self.update()
         self.trayIcon.hide()
         self.hide()
         QApplication.instance().quit()
@@ -123,7 +144,7 @@ if __name__ == '__main__':
         sys.exit(1)
     #QApplication.setQuitOnLastWindowClosed(False)
     gui = checkFax()
-    gui.show()
+#    gui.show()
     retval = app.exec_()
     gui.timer.stop()
     gui.trayIcon.hide()
