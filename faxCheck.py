@@ -1,4 +1,4 @@
-import sys, pickle, os, stat
+import sys, os, stat, json
 from PyQt6.QtWidgets import QMainWindow, QApplication, QSystemTrayIcon, QMessageBox, QMenu, QFileDialog, QLineEdit, QPushButton, QStatusBar
 from PyQt6.QtCore import QTimer, QUrl
 from PyQt6.QtGui import QIcon, QDesktopServices, QAction
@@ -106,8 +106,9 @@ class checkFax(QMainWindow):
             self.dropDead()
             
         # Update config file...
-        with open(self.configData['confFile'], 'wb') as f:
-            pickle.dump(self.configData, f, pickle.HIGHEST_PROTOCOL)
+        with open(self.configData['confFile'], 'w') as f:
+            json.dump(self.configData, f)
+            f.close()
         self.ui.checkIntervalLineEdit.setText(str(int(self.configData['checkInterval'] / 1000)))
         self.ui.dirToMonitorLineEdit.setText(self.configData['dirToMonitor'])
 
@@ -120,10 +121,11 @@ class checkFax(QMainWindow):
         try:
             statinfo = os.stat(self.configData['confFile'])
             with open(self.configData['confFile'], 'rb') as f:
-                self.configData = pickle.load(f)
+                self.configData = json.load(f)
+                f.close()
         except FileNotFoundError:
-            with open(self.configData['confFile'], 'wb') as f:
-                pickle.dump(self.configData, f, pickle.HIGHEST_PROTOCOL)
+            with open(self.configData['confFile'], 'w') as f:
+                json.dump(self.configData, f)
 
     def closeEvent(self, event):
         self.hide()
