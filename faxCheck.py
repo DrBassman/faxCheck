@@ -1,26 +1,15 @@
 import sys, pickle, os, stat
-from PyQt5.QtWidgets import QMainWindow, QApplication, QSystemTrayIcon, QMessageBox, QAction, QMenu, QFileDialog, QLineEdit, QPushButton, QStatusBar
-from PyQt5.QtCore import QTimer, QFileInfo, QUrl
-from PyQt5.QtGui import QIcon, QDesktopServices
-#from faxCheckGui import Ui_MainWindow
-from PyQt5 import uic
-import sys
+from PyQt6.QtWidgets import QMainWindow, QApplication, QSystemTrayIcon, QMessageBox, QMenu, QFileDialog, QLineEdit, QPushButton, QStatusBar
+from PyQt6.QtCore import QTimer, QUrl
+from PyQt6.QtGui import QIcon, QDesktopServices, QAction
+from PyQt6 import uic
 
 class checkFax(QMainWindow):
     def __init__(self):
         super(checkFax, self).__init__()
-        uic.loadUi("faxCheck.ui", self)
+        self.ui = uic.loadUi("faxCheck.ui", self)
         
         self.numTimes = 1
-        # Get QT objects from ui...
-        self.ui = self.findChild(QMainWindow, "MainWindow")
-        self.checkIntervalLineEdit = self.findChild(QLineEdit, "checkIntervalLineEdit")
-        self.dirToMonitorLineEdit = self.findChild(QLineEdit, "dirToMonitorLineEdit")
-        self.configFileLineEdit = self.findChild(QLineEdit, "configFileLineEdit")
-        self.actionQuit = self.findChild(QAction, "actionQuit")
-        self.updatePushButton = self.findChild(QPushButton, "updatePushButton")
-        self.pickDirPushButton = self.findChild(QPushButton, "pickDirPushButton")
-        self.statusbar = self.findChild(QStatusBar, "statusbar")
         
         self.normFaxIcon = QIcon('fax.png')
         self.newFaxIcon = QIcon('new_fax.png')
@@ -40,13 +29,13 @@ class checkFax(QMainWindow):
         self.trayIcon.setContextMenu(self.trayIconMenu)
 
         self.loadConfigFile()
-        self.checkIntervalLineEdit.setText(str(int(self.configData['checkInterval'] / 1000)))
-        self.dirToMonitorLineEdit.setText(self.configData['dirToMonitor'])
-        self.configFileLineEdit.setText(self.configData['confFile'])
-        self.actionQuit.triggered.connect(self.dropDead)
+        self.ui.checkIntervalLineEdit.setText(str(int(self.configData['checkInterval'] / 1000)))
+        self.ui.dirToMonitorLineEdit.setText(self.configData['dirToMonitor'])
+        self.ui.configFileLineEdit.setText(self.configData['confFile'])
+        self.ui.actionQuit.triggered.connect(self.dropDead)
 
-        self.updatePushButton.clicked.connect(self.update)
-        self.pickDirPushButton.clicked.connect(self.pickDir)
+        self.ui.updatePushButton.clicked.connect(self.update)
+        self.ui.pickDirPushButton.clicked.connect(self.pickDir)
 
         self.checkForFaxes()
         self.timer = QTimer(self)
@@ -56,9 +45,9 @@ class checkFax(QMainWindow):
         self.restoreAction.setEnabled(not self.isVisible())
 
     def pickDir(self):
-        dname = QFileDialog.getExistingDirectory(self, "Select Directory to Monitor", self.dirToMonitorLineEdit.text())
+        dname = QFileDialog.getExistingDirectory(self, "Select Directory to Monitor", self.ui.dirToMonitorLineEdit.text())
         if dname:
-            self.dirToMonitorLineEdit.setText(dname)
+            self.ui.dirToMonitorLineEdit.setText(dname)
     
     def hide(self):
         super(checkFax, self).hide()
@@ -97,12 +86,12 @@ class checkFax(QMainWindow):
             self.trayIcon.setIcon(self.normFaxIcon)
             listOfFiles = 'faxCheck -- monitor for new faxes'
         self.trayIcon.setToolTip(listOfFiles)
-        self.statusbar.showMessage('checkForFaxes(' + str(self.numTimes) + ')')
+        self.ui.statusbar.showMessage('checkForFaxes(' + str(self.numTimes) + ')')
         self.numTimes += 1
 
     def update(self):
-        newCheckInterval = int(self.checkIntervalLineEdit.text()) * 1000
-        newDirToMonitor = self.dirToMonitorLineEdit.text()
+        newCheckInterval = int(self.ui.checkIntervalLineEdit.text()) * 1000
+        newDirToMonitor = self.ui.dirToMonitorLineEdit.text()
 
        # Make sure new values are valid:
         
@@ -119,8 +108,8 @@ class checkFax(QMainWindow):
         # Update config file...
         with open(self.configData['confFile'], 'wb') as f:
             pickle.dump(self.configData, f, pickle.HIGHEST_PROTOCOL)
-        self.checkIntervalLineEdit.setText(str(int(self.configData['checkInterval'] / 1000)))
-        self.dirToMonitorLineEdit.setText(self.configData['dirToMonitor'])
+        self.ui.checkIntervalLineEdit.setText(str(int(self.configData['checkInterval'] / 1000)))
+        self.ui.dirToMonitorLineEdit.setText(self.configData['dirToMonitor'])
 
     def loadConfigFile(self):
         self.configData = {
@@ -157,7 +146,7 @@ if __name__ == '__main__':
     #QApplication.setQuitOnLastWindowClosed(False)
     gui = checkFax()
 #    gui.show()
-    retval = app.exec_()
+    retval = app.exec()
     gui.timer.stop()
     gui.trayIcon.hide()
     gui.hide()
