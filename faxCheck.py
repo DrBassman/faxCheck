@@ -1,5 +1,5 @@
 import sys, os, stat, json
-from PyQt6.QtWidgets import QMainWindow, QApplication, QSystemTrayIcon, QMessageBox, QMenu, QFileDialog, QLineEdit, QPushButton, QStatusBar
+from PyQt6.QtWidgets import QMainWindow, QApplication, QSystemTrayIcon, QMessageBox, QMenu, QFileDialog, QLineEdit, QPushButton, QStatusBar, QToolTip
 from PyQt6.QtCore import QTimer, QUrl
 from PyQt6.QtGui import QIcon, QDesktopServices, QAction, QCursor, QFont
 from PyQt6 import uic
@@ -119,7 +119,7 @@ class checkFax(QMainWindow):
             
         # Update config file...
         with open(self.configData['confFile'], 'w') as f:
-            json.dump(self.configData, f)
+            json.dump(self.configData, f, indent=4, sort_keys=True)
             f.close()
         self.ui.checkIntervalLineEdit.setText(str(int(self.configData['checkInterval'] / 1000)))
         self.ui.dirToMonitorLineEdit.setText(self.configData['dirToMonitor'])
@@ -137,7 +137,7 @@ class checkFax(QMainWindow):
                 f.close()
         except FileNotFoundError:
             with open(self.configData['confFile'], 'w') as f:
-                json.dump(self.configData, f)
+                json.dump(self.configData, f, indent=4, sort_keys=True)
 
     def closeEvent(self, event):
         self.hide()
