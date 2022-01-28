@@ -126,7 +126,7 @@ class checkFax(QMainWindow):
 
     def loadConfigFile(self):
         self.configData = {
-            'dirToMonitor': '//samba-jail.losh.lan/share/faxes'
+            'dirToMonitor': '//samba-jail.losh.lan/share/Faxes'
             , 'checkInterval': int(5000)
             , 'confFile': os.path.expanduser('~') + os.sep + '.faxCheckrc'
         }
