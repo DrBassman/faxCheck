@@ -28,10 +28,10 @@ class checkFax(QMainWindow):
         self.trayIconMenu.addAction(self.quitAction)
 #        self.trayIcon.setContextMenu(self.trayIconMenu)
 
+        self.confFile = os.path.expanduser('~') + os.sep + '.faxCheckrc'
         self.loadConfigFile()
         self.ui.checkIntervalLineEdit.setText(str(int(self.configData['checkInterval'] / 1000)))
         self.ui.dirToMonitorLineEdit.setText(self.configData['dirToMonitor'])
-        self.ui.configFileLineEdit.setText(self.configData['confFile'])
         self.ui.actionQuit.triggered.connect(self.dropDead)
 
         self.ui.updatePushButton.clicked.connect(self.update)
@@ -118,7 +118,7 @@ class checkFax(QMainWindow):
             self.dropDead()
             
         # Update config file...
-        with open(self.configData['confFile'], 'w') as f:
+        with open(self.confFile, 'w') as f:
             json.dump(self.configData, f, indent=4, sort_keys=True)
             f.close()
         self.ui.checkIntervalLineEdit.setText(str(int(self.configData['checkInterval'] / 1000)))
@@ -128,15 +128,14 @@ class checkFax(QMainWindow):
         self.configData = {
             'dirToMonitor': '//samba-jail.losh.lan/share/Faxes'
             , 'checkInterval': int(5000)
-            , 'confFile': os.path.expanduser('~') + os.sep + '.faxCheckrc'
         }
         try:
-            statinfo = os.stat(self.configData['confFile'])
-            with open(self.configData['confFile'], 'rb') as f:
+            statinfo = os.stat(self.confFile)
+            with open(self.confFile, 'rb') as f:
                 self.configData = json.load(f)
                 f.close()
         except FileNotFoundError:
-            with open(self.configData['confFile'], 'w') as f:
+            with open(self.confFile, 'w') as f:
                 json.dump(self.configData, f, indent=4, sort_keys=True)
 
     def closeEvent(self, event):
