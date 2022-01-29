@@ -28,7 +28,7 @@ class checkFax(QMainWindow):
         self.trayIconMenu.addAction(self.quitAction)
 #        self.trayIcon.setContextMenu(self.trayIconMenu)
 
-        self.confFile = os.path.expanduser('~') + os.sep + '.faxCheckrc'
+        self.confFile = f"{os.path.expanduser('~')}{os.sep}.faxCheckrc"
         self.loadConfigFile()
         self.ui.checkIntervalLineEdit.setText(str(int(self.configData['checkInterval'] / 1000)))
         self.ui.dirToMonitorLineEdit.setText(self.configData['dirToMonitor'])
@@ -96,7 +96,7 @@ class checkFax(QMainWindow):
             self.setWindowIcon(self.normFaxIcon)
             self.trayIcon.setIcon(self.normFaxIcon)
             listOfFiles = 'faxCheck -- monitor for new faxes'
-        listOfFiles = "\n" + str(numFiles) + " Faxes waiting\n "
+        listOfFiles = f"\n{str(numFiles)} Faxes waiting\n "
         self.trayIcon.setToolTip(listOfFiles)
         self.ui.statusbar.showMessage('checkForFaxes(' + str(self.numTimes) + ')')
         self.numTimes += 1
@@ -114,7 +114,7 @@ class checkFax(QMainWindow):
             if stat.S_ISDIR(statinfo.st_mode):
                 self.configData['dirToMonitor'] = newDirToMonitor
         except FileNotFoundError:
-            print ('[' + newDirToMonitor + '] does not exist')
+            print (f"[{newDirToMonitor}] does not exist")
             self.dropDead()
             
         # Update config file...
