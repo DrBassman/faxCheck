@@ -120,7 +120,6 @@ class checkFax(QMainWindow):
         # Update config file...
         with open(self.confFile, 'w') as f:
             json.dump(self.configData, f, indent=4, sort_keys=True)
-            f.close()
         self.ui.checkIntervalLineEdit.setText(str(int(self.configData['checkInterval'] / 1000)))
         self.ui.dirToMonitorLineEdit.setText(self.configData['dirToMonitor'])
 
@@ -133,7 +132,6 @@ class checkFax(QMainWindow):
             statinfo = os.stat(self.confFile)
             with open(self.confFile, 'rb') as f:
                 self.configData = json.load(f)
-                f.close()
         except FileNotFoundError:
             with open(self.confFile, 'w') as f:
                 json.dump(self.configData, f, indent=4, sort_keys=True)
