@@ -1,4 +1,4 @@
-import sys, os, stat
+import sys, os
 from PyQt6.QtWidgets import QMainWindow, QApplication, QSystemTrayIcon, QMessageBox, QMenu, QFileDialog
 from PyQt6.QtCore import QTimer, QUrl, QCoreApplication, QSettings
 from PyQt6.QtGui import QIcon, QDesktopServices, QAction, QCursor
@@ -134,7 +134,6 @@ class checkFax(QMainWindow):
     def pickDir(self):
         dname = QFileDialog.getExistingDirectory(self, "Select Directory to Monitor", self.ui.dirToMonitorLineEdit.text())
         if dname:
-            print(f"Updated path [{dname}]")
             self.configData['dirToMonitor'] = dname
             self.settings.setValue("config/dirToMonitor", dname)
             self.ui.dirToMonitorLineEdit.setText(dname)
