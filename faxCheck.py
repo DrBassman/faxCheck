@@ -30,7 +30,7 @@ class checkFax(QMainWindow):
 
         # Load configuration.
         self.configData['dirToMonitor'] = self.settings.value("config/dirToMonitor")
-        self.configData['checkInterval'] = self.settings.value("config/checkInterval")
+        self.configData['checkInterval'] = int(self.settings.value("config/checkInterval"))
 
         self.numTimes = 1
         
@@ -50,11 +50,11 @@ class checkFax(QMainWindow):
         self.trayIconMenu.addSeparator()
         self.trayIconMenu.addAction(self.quitAction)
 
-        self.ui.checkIntervalLineEdit.setText(str(int(self.configData['checkInterval'] / 1000)))
+        self.ui.checkIntervalSpinBox.setValue(self.configData['checkInterval'] // 1000)
         self.ui.dirToMonitorLineEdit.setText(self.configData['dirToMonitor'])
         self.ui.actionQuit.triggered.connect(self.dropDead)
+        self.ui.checkIntervalSpinBox.valueChanged.connect(self.checkIntervalChanged)
 
-        self.ui.updatePushButton.clicked.connect(self.update)
         self.ui.pickDirPushButton.clicked.connect(self.pickDir)
         self.trayIcon.activated.connect(self.trayActivated)
 
@@ -73,11 +73,6 @@ class checkFax(QMainWindow):
         if reason == QSystemTrayIcon.ActivationReason.MiddleClick:
             self.showNormal()
 
-    def pickDir(self):
-        dname = QFileDialog.getExistingDirectory(self, "Select Directory to Monitor", self.ui.dirToMonitorLineEdit.text())
-        if dname:
-            self.ui.dirToMonitorLineEdit.setText(dname)
-    
     def hide(self):
         super(checkFax, self).hide()
         self.minimizeAction.setEnabled(self.isVisible())
@@ -121,31 +116,6 @@ class checkFax(QMainWindow):
         self.ui.statusbar.showMessage('checkForFaxes(' + str(self.numTimes) + ')')
         self.numTimes += 1
 
-    def update(self):
-        newCheckInterval = int(self.ui.checkIntervalLineEdit.text()) * 1000
-        newDirToMonitor = self.ui.dirToMonitorLineEdit.text()
-
-       # Make sure new values are valid:
-        
-        if newCheckInterval <= 999000 and newCheckInterval > 0:
-            self.configData['checkInterval'] = newCheckInterval
-        try:
-            statinfo = os.stat(newDirToMonitor)
-            if stat.S_ISDIR(statinfo.st_mode):
-                self.configData['dirToMonitor'] = newDirToMonitor
-        except FileNotFoundError:
-            print (f"[{newDirToMonitor}] does not exist")
-            self.dropDead()
-            
-        # Update config file...
-        if newCheckInterval != self.settings.value("config/checkInterval"):
-            self.settings.setValue("config/checkInterval", newCheckInterval)
-        if newDirToMonitor != self.settings.value("config/dirToMonitor"):
-            self.settings.setValue("config/dirToMonitor", newDirToMonitor)
-
-        self.ui.checkIntervalLineEdit.setText(str(int(self.configData['checkInterval'] / 1000)))
-        self.ui.dirToMonitorLineEdit.setText(self.configData['dirToMonitor'])
-
     def closeEvent(self, event):
         self.hide()
         event.ignore()
@@ -160,6 +130,24 @@ class checkFax(QMainWindow):
         self.settings.setValue("geometry", self.saveGeometry())
         self.hide()
         QApplication.instance().quit()
+
+    def pickDir(self):
+        dname = QFileDialog.getExistingDirectory(self, "Select Directory to Monitor", self.ui.dirToMonitorLineEdit.text())
+        if dname:
+            print(f"Updated path [{dname}]")
+            self.configData['dirToMonitor'] = dname
+            self.settings.setValue("config/dirToMonitor", dname)
+            self.ui.dirToMonitorLineEdit.setText(dname)
+            self.timer.stop()
+            self.timer.start(self.configData['checkInterval'])
+    
+    def checkIntervalChanged(self, updated_val):
+        updated_val_ms = updated_val * 1000
+        self.configData['checkInterval'] = updated_val_ms
+        self.settings.setValue("config/checkInterval", updated_val_ms)
+        self.timer.stop()
+        self.timer.start(self.configData['checkInterval'])
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
