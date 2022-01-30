@@ -21,7 +21,10 @@ class checkFax(QMainWindow):
 
         # Set up default configuration if it doesn't exist...
         if not self.settings.contains("Installed"):
-            self.settings.setValue("config/dirToMonitor", "//samba-jail.losh.lan/share/Faxes")
+            d = QFileDialog.getExistingDirectory(self, "Select Directory to Monitor", "")
+            while not d:
+                d = QFileDialog.getExistingDirectory(self, "Select Directory to Monitor", "")
+            self.settings.setValue("config/dirToMonitor", d)
             self.settings.setValue("config/checkInterval", 5000)
             self.settings.setValue("Installed", True)
 
