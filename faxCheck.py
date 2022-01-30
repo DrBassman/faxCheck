@@ -15,6 +15,10 @@ class checkFax(QMainWindow):
         self.settings = QSettings()
         self.configData = {}
 
+        # Keep track of window last position between runs...
+        if self.settings.contains("geometry"):
+            self.restoreGeometry(self.settings.value("geometry"))
+
         # Set up default configuration if it doesn't exist...
         if not self.settings.contains("Installed"):
             self.settings.setValue("config/dirToMonitor", "//samba-jail.losh.lan/share/Faxes")
@@ -149,6 +153,8 @@ class checkFax(QMainWindow):
     def dropDead(self):
         self.timer.stop()
         self.trayIcon.hide()
+        # keep track of window position between runs...
+        self.settings.setValue("geometry", self.saveGeometry())
         self.hide()
         QApplication.instance().quit()
 
