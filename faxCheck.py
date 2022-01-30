@@ -1,14 +1,30 @@
-import sys, os, stat, json
-from PyQt6.QtWidgets import QMainWindow, QApplication, QSystemTrayIcon, QMessageBox, QMenu, QFileDialog, QLineEdit, QPushButton, QStatusBar, QToolTip
-from PyQt6.QtCore import QTimer, QUrl
-from PyQt6.QtGui import QIcon, QDesktopServices, QAction, QCursor, QFont
+import sys, os, stat
+from PyQt6.QtWidgets import QMainWindow, QApplication, QSystemTrayIcon, QMessageBox, QMenu, QFileDialog
+from PyQt6.QtCore import QTimer, QUrl, QCoreApplication, QSettings
+from PyQt6.QtGui import QIcon, QDesktopServices, QAction, QCursor
 from PyQt6 import uic
+
+QCoreApplication.setApplicationName("faxCheck")
+QCoreApplication.setOrganizationDomain("losh.com")
+QCoreApplication.setOrganizationName("Losh Optometry")
 
 class checkFax(QMainWindow):
     def __init__(self):
         super(checkFax, self).__init__()
         self.ui = uic.loadUi("faxCheck.ui", self)
-        
+        self.settings = QSettings()
+        self.configData = {}
+
+        # Set up default configuration if it doesn't exist...
+        if not self.settings.contains("Installed"):
+            self.settings.setValue("config/dirToMonitor", "//samba-jail.losh.lan/share/Faxes")
+            self.settings.setValue("config/checkInterval", 5000)
+            self.settings.setValue("Installed", True)
+
+        # Load configuration.
+        self.configData['dirToMonitor'] = self.settings.value("config/dirToMonitor")
+        self.configData['checkInterval'] = self.settings.value("config/checkInterval")
+
         self.numTimes = 1
         
         self.normFaxIcon = QIcon('fax.png')
@@ -26,10 +42,7 @@ class checkFax(QMainWindow):
         self.trayIconMenu.addAction(self.openFaxDirAction)
         self.trayIconMenu.addSeparator()
         self.trayIconMenu.addAction(self.quitAction)
-#        self.trayIcon.setContextMenu(self.trayIconMenu)
 
-        self.confFile = f"{os.path.expanduser('~')}{os.sep}.faxCheckrc"
-        self.loadConfigFile()
         self.ui.checkIntervalLineEdit.setText(str(int(self.configData['checkInterval'] / 1000)))
         self.ui.dirToMonitorLineEdit.setText(self.configData['dirToMonitor'])
         self.ui.actionQuit.triggered.connect(self.dropDead)
@@ -118,23 +131,13 @@ class checkFax(QMainWindow):
             self.dropDead()
             
         # Update config file...
-        with open(self.confFile, 'w') as f:
-            json.dump(self.configData, f, indent=4, sort_keys=True)
+        if newCheckInterval != self.settings.value("config/checkInterval"):
+            self.settings.setValue("config/checkInterval", newCheckInterval)
+        if newDirToMonitor != self.settings.value("config/dirToMonitor"):
+            self.settings.setValue("config/dirToMonitor", newDirToMonitor)
+
         self.ui.checkIntervalLineEdit.setText(str(int(self.configData['checkInterval'] / 1000)))
         self.ui.dirToMonitorLineEdit.setText(self.configData['dirToMonitor'])
-
-    def loadConfigFile(self):
-        self.configData = {
-            'dirToMonitor': '//samba-jail.losh.lan/share/Faxes'
-            , 'checkInterval': int(5000)
-        }
-        try:
-            statinfo = os.stat(self.confFile)
-            with open(self.confFile, 'rb') as f:
-                self.configData = json.load(f)
-        except FileNotFoundError:
-            with open(self.confFile, 'w') as f:
-                json.dump(self.configData, f, indent=4, sort_keys=True)
 
     def closeEvent(self, event):
         self.hide()
