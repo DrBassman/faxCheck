@@ -4,6 +4,7 @@ Name "faxCheck setup"
 SetCompressor /SOLID lzma
 Outfile "faxCheck_install.exe"
 InstallDir $PROGRAMFILES64\faxCheck
+Icon "fax.ico"
 DirText "Install faxCheck on your computer" "" "Browse" "Select directory into which to install faxCheck"
 
 # default section
