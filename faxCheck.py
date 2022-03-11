@@ -34,8 +34,8 @@ class checkFax(QMainWindow):
 
         self.numTimes = 1
         
-        self.normFaxIcon = QIcon('fax.png')
-        self.newFaxIcon = QIcon('new_fax.png')
+        self.normFaxIcon = QIcon('fax.svg')
+        self.newFaxIcon = QIcon('new_fax.svg')
         self.trayIcon = QSystemTrayIcon(self.normFaxIcon, self)
         self.setWindowIcon(self.normFaxIcon)
         self.trayIcon.show()
