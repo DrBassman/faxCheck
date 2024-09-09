@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=faxCheck
+Comment=Notify fax receipt
+Exec=/opt/faxCheck/faxCheck.sh
+Icon=/opt/faxCheck/fax.svg
+Type=Application
+Categories=Office

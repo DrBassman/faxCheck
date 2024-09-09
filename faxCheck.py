@@ -66,12 +66,12 @@ class checkFax(QMainWindow):
         self.restoreAction.setEnabled(not self.isVisible())
 
     def trayActivated(self, reason):
-        if reason == QSystemTrayIcon.ActivationReason.Context:
+        if reason == QSystemTrayIcon.ActivationReason.Trigger:
             self.trayIconMenu.exec(QCursor.pos())
         if reason == QSystemTrayIcon.ActivationReason.DoubleClick:
-            self.openFaxDir()
-        if reason == QSystemTrayIcon.ActivationReason.MiddleClick:
             self.showNormal()
+        if reason == QSystemTrayIcon.ActivationReason.MiddleClick:
+            self.openFaxDir()
 
     def hide(self):
         super(checkFax, self).hide()
