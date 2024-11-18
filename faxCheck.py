@@ -26,11 +26,13 @@ class checkFax(QMainWindow):
                 d = QFileDialog.getExistingDirectory(self, "Select Directory to Monitor", "")
             self.settings.setValue("config/dirToMonitor", d)
             self.settings.setValue("config/checkInterval", 5000)
+            self.settings.setValue("config/ignoreFiles", ["FacsimileCoverSheet2.pdf"])
             self.settings.setValue("Installed", True)
 
         # Load configuration.
         self.configData['dirToMonitor'] = self.settings.value("config/dirToMonitor")
         self.configData['checkInterval'] = int(self.settings.value("config/checkInterval"))
+        self.configData['ignoreFiles'] = self.settings.value("config/ignoreFiles")
 
         self.numTimes = 1
         
@@ -95,7 +97,11 @@ class checkFax(QMainWindow):
             
         for f in os.listdir(self.configData['dirToMonitor']):
             # ignore "hidden" files that start with .
-            if f[0] != '.':
+            ignoredFile = False
+            for i in self.configData['ignoreFiles']:
+                if f == i:
+                    ignoredFile = True
+            if f[0] != '.' and not ignoredFile:
                 pathname = os.path.join(self.configData['dirToMonitor'], f)
                 if listOfFiles != '':
                     listOfFiles += '\n'
