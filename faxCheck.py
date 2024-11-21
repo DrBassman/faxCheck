@@ -1,11 +1,11 @@
 import sys, os
-from PyQt6.QtWidgets import QMainWindow, QApplication, QSystemTrayIcon, QMessageBox, QMenu, QFileDialog
+from PyQt6.QtWidgets import QMainWindow, QApplication, QSystemTrayIcon, QMessageBox, QMenu, QFileDialog, QListWidget,  QListWidgetItem, QInputDialog
 from PyQt6.QtCore import QTimer, QUrl, QCoreApplication, QSettings
 from PyQt6.QtGui import QIcon, QDesktopServices, QAction, QCursor
 from PyQt6 import uic
 
 QCoreApplication.setApplicationName("faxCheck")
-QCoreApplication.setOrganizationDomain("losh.com")
+QCoreApplication.setOrganizationDomain("loshoptometry.com")
 QCoreApplication.setOrganizationName("Losh Optometry")
 
 class checkFax(QMainWindow):
@@ -26,7 +26,7 @@ class checkFax(QMainWindow):
                 d = QFileDialog.getExistingDirectory(self, "Select Directory to Monitor", "")
             self.settings.setValue("config/dirToMonitor", d)
             self.settings.setValue("config/checkInterval", 5000)
-            self.settings.setValue("config/ignoreFiles", ["FacsimileCoverSheet2.pdf"])
+            self.settings.setValue("config/ignoreFiles", [''])
             self.settings.setValue("Installed", True)
 
         # Load configuration.
@@ -56,6 +56,12 @@ class checkFax(QMainWindow):
         self.ui.dirToMonitorLineEdit.setText(self.configData['dirToMonitor'])
         self.ui.actionQuit.triggered.connect(self.dropDead)
         self.ui.checkIntervalSpinBox.valueChanged.connect(self.checkIntervalChanged)
+        self.ui.addButton.clicked.connect(self.add)
+        self.ui.removeButton.clicked.connect(self.removeIgnoreFile)
+        self.ui.clearButton.clicked.connect(self.clear)
+
+        for i in self.configData['ignoreFiles']:
+            QListWidgetItem(i, self.ui.ignoreFilesListWidget)
 
         self.ui.pickDirPushButton.clicked.connect(self.pickDir)
         self.trayIcon.activated.connect(self.trayActivated)
@@ -66,6 +72,40 @@ class checkFax(QMainWindow):
         self.timer.start(self.configData['checkInterval'])
         self.minimizeAction.setEnabled(self.isVisible())
         self.restoreAction.setEnabled(not self.isVisible())
+
+    def add(self):
+        text, ok = QInputDialog.getText(self, 'Add file to ignore', 'File to Ignore: ')
+        if ok and text:
+            if self.configData['ignoreFiles'][0] == '':
+                self.configData['ignoreFiles'][0] = text
+                cur_item = self.ui.ignoreFilesListWidget.takeItem(0)
+                del cur_item
+            else:
+                self.configData['ignoreFiles'].append(text)
+            self.ui.ignoreFilesListWidget.addItem(text)
+            self.settings.setValue("config/ignoreFiles", self.configData['ignoreFiles'])
+
+    def removeIgnoreFile(self):
+        cur_row = self.ui.ignoreFilesListWidget.currentRow()
+        if cur_row >= 0:
+            rm_txt = self.ui.ignoreFilesListWidget.item(cur_row).text()
+            cur_item = self.ui.ignoreFilesListWidget.takeItem(cur_row)
+            del cur_item
+            while(rm_txt in self.configData['ignoreFiles']):
+                self.configData['ignoreFiles'].remove(rm_txt)
+            if len(self.configData['ignoreFiles']) == 1 and self.configData['ignoreFiles'][0] == '':
+                self.configData['ignoreFiles'] = ['']
+                self.settings.setValue("config/ignoreFiles", [''])
+            elif len(self.configData['ignoreFiles']) == 0:
+                self.configData['ignoreFiles'] = ['']
+                self.settings.setValue("config/ignoreFiles", [''])
+            else:
+                self.settings.setValue("config/ignoreFiles", self.configData['ignoreFiles'])
+
+    def clear(self):
+        self.ui.ignoreFilesListWidget.clear()
+        self.configData['ignoreFiles'] = ['']
+        self.settings.setValue("config/ignoreFiles", self.configData['ignoreFiles'])
 
     def trayActivated(self, reason):
         if reason == QSystemTrayIcon.ActivationReason.Trigger:
