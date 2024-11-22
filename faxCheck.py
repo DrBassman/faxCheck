@@ -26,13 +26,24 @@ class checkFax(QMainWindow):
                 d = QFileDialog.getExistingDirectory(self, "Select Directory to Monitor", "")
             self.settings.setValue("config/dirToMonitor", d)
             self.settings.setValue("config/checkInterval", 5000)
-            self.settings.setValue("config/ignoreFiles", [''])
+            self.settings.setValue("config/ignoreFiles", list())
             self.settings.setValue("Installed", True)
+
+        # Add empty list for ignoreFiles if it doesn't exist...
+        if not self.settings.contains("config/ignoreFiles"):
+            print ("No ignoreFiles...Adding\n")
+            self.settings.setValue("config/ignoreFiles", list())
 
         # Load configuration.
         self.configData['dirToMonitor'] = self.settings.value("config/dirToMonitor")
         self.configData['checkInterval'] = int(self.settings.value("config/checkInterval"))
         self.configData['ignoreFiles'] = self.settings.value("config/ignoreFiles")
+
+        # Not obvious...
+        # If self.configData['ignoreFiles'] is empty, it gets reloaded as <class 'NoneType'>
+        # So, if it isn't a list, make it an empty list...
+        if not isinstance(self.configData['ignoreFiles'], list):
+            self.configData['ignoreFiles'] = []
 
         self.numTimes = 1
         
@@ -60,9 +71,8 @@ class checkFax(QMainWindow):
         self.ui.removeButton.clicked.connect(self.removeIgnoreFile)
         self.ui.clearButton.clicked.connect(self.clear)
 
-        if self.configData['ignoreFiles'][0] != '':
-            for i in self.configData['ignoreFiles']:
-                QListWidgetItem(i, self.ui.ignoreFilesListWidget)
+        for i in self.configData['ignoreFiles']:
+            QListWidgetItem(i, self.ui.ignoreFilesListWidget)
 
         self.ui.pickDirPushButton.clicked.connect(self.pickDir)
         self.trayIcon.activated.connect(self.trayActivated)
@@ -76,13 +86,8 @@ class checkFax(QMainWindow):
 
     def add(self):
         text, ok = QInputDialog.getText(self, 'Add file to ignore', 'File to Ignore: ')
-        if ok and text:
-            if self.configData['ignoreFiles'][0] == '':
-                self.configData['ignoreFiles'][0] = text
-                cur_item = self.ui.ignoreFilesListWidget.takeItem(0)
-                del cur_item
-            else:
-                self.configData['ignoreFiles'].append(text)
+        if ok and text and text not in self.configData['ignoreFiles']:
+            self.configData['ignoreFiles'].append(text)
             self.ui.ignoreFilesListWidget.addItem(text)
             self.settings.setValue("config/ignoreFiles", self.configData['ignoreFiles'])
 
@@ -94,18 +99,11 @@ class checkFax(QMainWindow):
             del cur_item
             while(rm_txt in self.configData['ignoreFiles']):
                 self.configData['ignoreFiles'].remove(rm_txt)
-            if len(self.configData['ignoreFiles']) == 1 and self.configData['ignoreFiles'][0] == '':
-                self.configData['ignoreFiles'] = ['']
-                self.settings.setValue("config/ignoreFiles", [''])
-            elif len(self.configData['ignoreFiles']) == 0:
-                self.configData['ignoreFiles'] = ['']
-                self.settings.setValue("config/ignoreFiles", [''])
-            else:
-                self.settings.setValue("config/ignoreFiles", self.configData['ignoreFiles'])
+            self.settings.setValue("config/ignoreFiles", self.configData['ignoreFiles'])
 
     def clear(self):
         self.ui.ignoreFilesListWidget.clear()
-        self.configData['ignoreFiles'] = ['']
+        self.configData['ignoreFiles'] = []
         self.settings.setValue("config/ignoreFiles", self.configData['ignoreFiles'])
 
     def trayActivated(self, reason):
@@ -202,7 +200,7 @@ if __name__ == '__main__':
         sys.exit(1)
     #QApplication.setQuitOnLastWindowClosed(False)
     gui = checkFax()
-#    gui.show()
+    gui.show()
     retval = app.exec()
     gui.timer.stop()
     gui.trayIcon.hide()
