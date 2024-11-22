@@ -1,0 +1,15 @@
+Files are here to build windows installer for this program:
+
+How to build an updated installer:
+
+1) Make sure the PyInstaller module is installed...
+$ pip install PyInstaller
+
+2) Run PyInstaller...
+$ pyinstaller faxCheck.spec
+
+3) Compile the installer... 
+In this directory, right click on the faxCheck.nsi file -> Compile NSIS Script
+
+4)  faxCheck_install.exe should be created in this folder.  Use this to install the app.
+
