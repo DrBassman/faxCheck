@@ -29,6 +29,11 @@ class checkFax(QMainWindow):
             self.settings.setValue("config/ignoreFiles", [])
             self.settings.setValue("Installed", True)
 
+        # Add blank ignoreFiles list if it doesn't exist...
+        if not self.settings.contains("config/ignoreFiles"):
+            print ("Update config file...adding ignoreFiles list ...")
+            self.settings.setValue("config/ignoreFiles", [])
+
         # Load configuration.
         self.configData['dirToMonitor'] = self.settings.value("config/dirToMonitor")
         self.configData['checkInterval'] = int(self.settings.value("config/checkInterval"))
