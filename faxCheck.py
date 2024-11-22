@@ -26,24 +26,13 @@ class checkFax(QMainWindow):
                 d = QFileDialog.getExistingDirectory(self, "Select Directory to Monitor", "")
             self.settings.setValue("config/dirToMonitor", d)
             self.settings.setValue("config/checkInterval", 5000)
-            self.settings.setValue("config/ignoreFiles", list())
+            self.settings.setValue("config/ignoreFiles", [])
             self.settings.setValue("Installed", True)
-
-        # Add empty list for ignoreFiles if it doesn't exist...
-        if not self.settings.contains("config/ignoreFiles"):
-            print ("No ignoreFiles...Adding\n")
-            self.settings.setValue("config/ignoreFiles", list())
 
         # Load configuration.
         self.configData['dirToMonitor'] = self.settings.value("config/dirToMonitor")
         self.configData['checkInterval'] = int(self.settings.value("config/checkInterval"))
-        self.configData['ignoreFiles'] = self.settings.value("config/ignoreFiles")
-
-        # Not obvious...
-        # If self.configData['ignoreFiles'] is empty, it gets reloaded as <class 'NoneType'>
-        # So, if it isn't a list, make it an empty list...
-        if not isinstance(self.configData['ignoreFiles'], list):
-            self.configData['ignoreFiles'] = []
+        self.configData['ignoreFiles'] = self.settings.value("config/ignoreFiles", [], list)
 
         self.numTimes = 1
         
