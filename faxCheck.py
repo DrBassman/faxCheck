@@ -61,9 +61,9 @@ class checkFax(QMainWindow):
         self.ui.dirToMonitorLineEdit.setText(self.configData['dirToMonitor'])
         self.ui.actionQuit.triggered.connect(self.dropDead)
         self.ui.checkIntervalSpinBox.valueChanged.connect(self.checkIntervalChanged)
-        self.ui.addButton.clicked.connect(self.add)
+        self.ui.addButton.clicked.connect(self.addIgnoreFile)
         self.ui.removeButton.clicked.connect(self.removeIgnoreFile)
-        self.ui.clearButton.clicked.connect(self.clear)
+        self.ui.clearButton.clicked.connect(self.clearIgnoreFiles)
 
         for i in self.configData['ignoreFiles']:
             QListWidgetItem(i, self.ui.ignoreFilesListWidget)
@@ -78,7 +78,7 @@ class checkFax(QMainWindow):
         self.minimizeAction.setEnabled(self.isVisible())
         self.restoreAction.setEnabled(not self.isVisible())
 
-    def add(self):
+    def addIgnoreFile(self):
         text, ok = QInputDialog.getText(self, 'Add file to ignore', 'File to Ignore: ')
         if ok and text and text not in self.configData['ignoreFiles']:
             self.configData['ignoreFiles'].append(text)
@@ -95,7 +95,7 @@ class checkFax(QMainWindow):
                 self.configData['ignoreFiles'].remove(rm_txt)
             self.settings.setValue("config/ignoreFiles", self.configData['ignoreFiles'])
 
-    def clear(self):
+    def clearIgnoreFiles(self):
         self.ui.ignoreFilesListWidget.clear()
         self.configData['ignoreFiles'] = []
         self.settings.setValue("config/ignoreFiles", self.configData['ignoreFiles'])
