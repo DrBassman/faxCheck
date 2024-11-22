@@ -60,8 +60,9 @@ class checkFax(QMainWindow):
         self.ui.removeButton.clicked.connect(self.removeIgnoreFile)
         self.ui.clearButton.clicked.connect(self.clear)
 
-        for i in self.configData['ignoreFiles']:
-            QListWidgetItem(i, self.ui.ignoreFilesListWidget)
+        if self.configData['ignoreFiles'][0] != '':
+            for i in self.configData['ignoreFiles']:
+                QListWidgetItem(i, self.ui.ignoreFilesListWidget)
 
         self.ui.pickDirPushButton.clicked.connect(self.pickDir)
         self.trayIcon.activated.connect(self.trayActivated)

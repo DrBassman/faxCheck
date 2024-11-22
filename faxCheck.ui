@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>566</width>
-    <height>346</height>
+    <width>525</width>
+    <height>392</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -178,19 +178,6 @@
             </widget>
            </item>
            <item>
-            <spacer name="verticalSpacer_2">
-             <property name="orientation">
-              <enum>Qt::Orientation::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
             <widget class="QPushButton" name="addButton">
              <property name="text">
               <string>Add</string>
@@ -211,6 +198,19 @@
              </property>
             </widget>
            </item>
+           <item>
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
           </layout>
          </item>
          <item>
@@ -228,7 +228,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>566</width>
+     <width>525</width>
      <height>28</height>
     </rect>
    </property>
