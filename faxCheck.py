@@ -1,6 +1,6 @@
 import sys, os
 from PyQt6.QtWidgets import QMainWindow, QApplication, QSystemTrayIcon, QMessageBox, QMenu, QFileDialog, QListWidget,  QListWidgetItem, QInputDialog
-from PyQt6.QtCore import QTimer, QUrl, QCoreApplication, QSettings
+from PyQt6.QtCore import QTimer, QUrl, QCoreApplication, QSettings, QDir
 from PyQt6.QtGui import QIcon, QDesktopServices, QAction, QCursor
 from PyQt6 import uic
 
@@ -79,11 +79,14 @@ class checkFax(QMainWindow):
         self.restoreAction.setEnabled(not self.isVisible())
 
     def addIgnoreFile(self):
-        text, ok = QInputDialog.getText(self, 'Add file to ignore', 'File to Ignore: ')
-        if ok and text and text not in self.configData['ignoreFiles']:
-            self.configData['ignoreFiles'].append(text)
-            self.ui.ignoreFilesListWidget.addItem(text)
-            self.settings.setValue("config/ignoreFiles", self.configData['ignoreFiles'])
+        text = QFileDialog.getSaveFileName(self, "Select File to Ignore", self.ui.dirToMonitorLineEdit.text(), "", "", QFileDialog.Option.DontConfirmOverwrite)
+        if text[0]:
+            text = text[0].split(QDir.separator())[-1]
+#        text, ok = QInputDialog.getText(self, 'Add file to ignore', 'File to Ignore: ')
+            if text and text not in self.configData['ignoreFiles']:
+                self.configData['ignoreFiles'].append(text)
+                self.ui.ignoreFilesListWidget.addItem(text)
+                self.settings.setValue("config/ignoreFiles", self.configData['ignoreFiles'])
 
     def removeIgnoreFile(self):
         cur_row = self.ui.ignoreFilesListWidget.currentRow()
