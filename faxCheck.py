@@ -194,7 +194,7 @@ if __name__ == '__main__':
         sys.exit(1)
     #QApplication.setQuitOnLastWindowClosed(False)
     gui = checkFax()
-    gui.show()
+#    gui.show()
     retval = app.exec()
     gui.timer.stop()
     gui.trayIcon.hide()
