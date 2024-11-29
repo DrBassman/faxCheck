@@ -14,8 +14,7 @@ Section
     SetShellVarContext all
     # define what to install and place it in the output path
     File /r dist\faxCheck\*
-    SetOutPath $INSTDIR\_internal
-    CreateShortCut $SMPROGRAMS\faxCheck.lnk $INSTDIR\faxCheck.exe parameters $INSTDIR\fax.ico
+    CreateShortCut $SMPROGRAMS\faxCheck.lnk $INSTDIR\faxCheck.exe parameters $INSTDIR\_internal\fax.ico
     CreateShortCut $SMSTARTUP\faxCheck.lnk $INSTDIR\faxCheck.exe parameters $INSTDIR\fax.ico
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\faxCheck" "DisplayName" "faxCheck - a Python QT6 app to monitor directory for new files"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\faxCheck" "Publisher" "Ryan Losh"

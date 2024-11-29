@@ -11,7 +11,7 @@ QCoreApplication.setOrganizationName("Losh Optometry")
 class checkFax(QMainWindow):
     def __init__(self):
         super(checkFax, self).__init__()
-        self.ui = uic.loadUi("faxCheck.ui", self)
+        self.ui = uic.loadUi(os.path.abspath(os.path.join(os.path.dirname(__file__), "faxCheck.ui")), self)
         self.settings = QSettings()
         self.configData = {}
 
@@ -29,10 +29,9 @@ class checkFax(QMainWindow):
             self.settings.setValue("config/ignoreFiles", [])
             self.settings.setValue("Installed", True)
 
-        # Add blank ignoreFiles list if it doesn't exist...
+        # Add Thumbs.db to ignoreFiles list if it doesn't exist...
         if not self.settings.contains("config/ignoreFiles"):
-            print ("Update config file...adding ignoreFiles list ...")
-            self.settings.setValue("config/ignoreFiles", [])
+            self.settings.setValue("config/ignoreFiles", ["Thumbs.db"])
 
         # Load configuration.
         self.configData['dirToMonitor'] = self.settings.value("config/dirToMonitor")
@@ -41,8 +40,8 @@ class checkFax(QMainWindow):
 
         self.numTimes = 1
         
-        self.normFaxIcon = QIcon('fax.svg')
-        self.newFaxIcon = QIcon('new_fax.svg')
+        self.normFaxIcon = QIcon(os.path.abspath(os.path.join(os.path.dirname(__file__), 'fax.svg')))
+        self.newFaxIcon = QIcon(os.path.abspath(os.path.join(os.path.dirname(__file__), 'new_fax.svg')))
         self.trayIcon = QSystemTrayIcon(self.normFaxIcon, self)
         self.setWindowIcon(self.normFaxIcon)
         self.trayIcon.show()
